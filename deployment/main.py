@@ -169,7 +169,7 @@ def main():
 
                 try:
                     # se conecta a MongoDB
-                    uri = f"mongodb+srv://picassojuanpablo:{password}@cluster0.zet6ttc.mongodb.net/?retryWrites=true&w=majority"
+                    uri = f"mongodb+srv://picassojp:{password}@cluster0.cchanol.mongodb.net/?retryWrites=true&w=majority"
 
                     # Create a new client and connect to the server
                     client = MongoClient(uri, server_api=ServerApi('1'))
