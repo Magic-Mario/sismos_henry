@@ -77,7 +77,7 @@ url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
 params = {"format": "geojson", "starttime": "2014-01-01", "endtime": "2014-01-31"}
 
 # máximo de registros que la API de USGS devolverá por consulta
-LIMIT = 2000
+LIMIT = 20000
 
 #### funciones del programa
 
