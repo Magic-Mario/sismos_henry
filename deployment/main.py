@@ -213,7 +213,7 @@ def main():
 
         # Espera una hora antes de la próxima iteración
         # time.sleep(3600)
-        time.sleep(100)
+        time.sleep(900)
 
 
 if __name__ == "__main__":
