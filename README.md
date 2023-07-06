@@ -1,14 +1,13 @@
+![Texto alternativo](https://drive.google.com/uc?export=view&id=1LD0nrhSYzXCOxtlkiMdBfwpN0pKe3jbP)
+[Ver Pagina Web](https://sites.google.com/view/alertaterremoto/inicio)
+
+
 # Propuesta de Proyecto: Sistema de Alerta Sísmicas
 
 ## Entendimiento de la situación actual
-
-En esta sección, vamos a contextualizar la problemática de las alertas sísmicas y expresar posibles análisis y soluciones en torno a la misma.
-
 En la actualidad, la detección temprana de sismos y la rápida notificación a la población son aspectos fundamentales para reducir los daños y las pérdidas humanas ocasionadas por los terremotos. Sin embargo, existen desafíos importantes que requieren atención:
 
-- La falta de un sistema de alerta sísmica eficiente y confiable dificulta la capacidad de las autoridades y los ciudadanos para tomar medidas preventivas.
-- La falta de una infraestructura adecuada para la detección y comunicación de sismos impide una respuesta rápida y coordinada ante eventos sísmicos.
-- Las tecnologías existentes para la detección de sismos a menudo presentan falsas alarmas o no logran detectar sismos de menor magnitud que también pueden ser peligrosos.
+- La falta de un sistema de alerta sísmica eficiente y popular dificulta la capacidad de las autoridades y los ciudadanos para tomar medidas preventivas.
 - La falta de concientización y educación de la población sobre cómo actuar durante un sismo y cómo interpretar las alertas sísmicas contribuye a la vulnerabilidad de las comunidades.
 
 Para abordar estos desafíos, es necesario desarrollar un sistema de alerta sísmica que combine tecnologías avanzadas de detección y comunicación, así como estrategias de difusión y educación de la población. El proyecto busca establecer un sistema confiable y robusto que permita una detección temprana de los sismos, una rápida notificación a la población afectada y una correcta interpretación de las alertas para tomar las medidas adecuadas de protección.
@@ -38,14 +37,10 @@ Dado que las temáticas relacionadas con las alertas sísmicas son amplias, es i
 
 
 ## KPI Asociados
-- Promedio de temblores por mes: Calcula el promedio de temblores registrados por mes en los datos históricos. Este KPI  dará una idea de los meses con mayor actividad sísmica.
+- Zonas de Riesgo: Cantidad de temblores por zona
 
-- Máximo y mínimo de magnitud de temblores: Identifica el temblor de mayor magnitud y el de menor magnitud registrado en los datos históricos. Estos KPIs darán información sobre la variabilidad en la intensidad de los temblores.
-
-- Porcentaje de temblores por nivel de intensidad: Clasifica los temblores en diferentes niveles de intensidad (por ejemplo, bajo, moderado, alto) y calcula el porcentaje de temblores en cada categoría. Este KPI  permitirá comprender la distribución de los temblores en función de su intensidad.
-
-- Histograma de ocurrencias mensuales: Crea un histograma que muestre la distribución de temblores a lo largo del año, con barras que representen el número de temblores por mes. Este KPI visual ayudará a identificar los meses con mayor y menor ocurrencia de temblores.
-
+- Popularidad: Cantidad de registros en la app de telegram a travez del tiempo
+  
 - Tendencias temporales de la actividad sísmica: Utiliza análisis de series de tiempo para identificar tendencias en la actividad sísmica a lo largo de los años.
 
 
