@@ -5,7 +5,7 @@
 - [@picassojp](https://github.com/picassojp)
 - [@fabr7](https://github.com/fabr7)
 - [@magic-mario](https://github.com/Magic-Mario)
-- [@daumin](https://github.com/Daumian)
+- [@daumian](https://github.com/Daumian)
 
 ### Roles
 
@@ -15,7 +15,7 @@
 | `@picassojp`   | `Data Engineer`   |    
 | `@fabr7`   | `Data Engineer`   | 
 | `@magic-mario`| `Machine Learning Engineer` |                
-| `@daumin`   | `Data Analyst`  |   
+| `@daumian`   | `Data Analyst`  |   
 
 **Data Scientist**
 
