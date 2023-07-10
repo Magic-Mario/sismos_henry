@@ -1,3 +1,4 @@
+# sourcery skip: assign-if-exp
 import requests
 import pandas as pd
 from pymongo import MongoClient, UpdateOne
@@ -106,7 +107,7 @@ else:
 #### funciones del programa
 
 #función para búsqueda de país dentro de las propiedades de la respuesta de la API
-def find_country(place):
+def find_country(place):  # sourcery skip: use-next
     # busca en la lista de paises
     for pais in paises:
         if pais.lower() in place.lower():
