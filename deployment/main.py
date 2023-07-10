@@ -89,7 +89,7 @@ uri = f"mongodb+srv://picassojp:{password}@cluster0.cchanol.mongodb.net/?retryWr
 client = MongoClient(uri, server_api=ServerApi('1'))
 
 db = client["pf-henry"]
-collection = db["api_usgs"]
+collection = db["db-pf-henry"]
 collection_meta = db["metadata"]
 
 # Recuperar last_query_time de MongoDB al inicio del programa
@@ -127,7 +127,7 @@ def main():
             endtime = pd.Timestamp.now()
 
             # configura el parámetro de finalización para ser una hora después del tiempo de inicio
-            params["endtime"] = (pd.Timestamp(params["starttime"]) + timedelta(hours=1)).isoformat()
+            params["endtime"] = (pd.Timestamp(params["starttime"]) + timedelta(hours=24)).isoformat()
 
             if pd.Timestamp(params["endtime"]) > endtime:
                 params["endtime"] = endtime.isoformat()
@@ -240,7 +240,7 @@ def main():
 
         # Espera una hora antes de la próxima iteración
         # time.sleep(3600)
-        time.sleep(100)
+        time.sleep(30)
 
 
 if __name__ == "__main__":
