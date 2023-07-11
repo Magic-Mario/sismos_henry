@@ -34,13 +34,13 @@ if response.status_code == 200:
     datos = response.json()
     #se extrae la información que se necesita del geojson
     datos = datos['features']
-
-    if datos[0] != None:
+    # Verifico que si hayan datos disponibles
+    if datos:
         datos = datos[0]['properties']
 
         mensaje = f"Hubo un terremoto cercano a ti, a {datos['place']}\nCon una magnitud de {datos['mag']}\n¿Te encuentras bien?"
         
-        print( mensaje)
+        print(mensaje)
 else:
     print("Error al realizar la solicitud:", response.status_code)
 

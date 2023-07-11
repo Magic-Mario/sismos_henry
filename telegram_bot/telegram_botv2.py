@@ -53,43 +53,43 @@ def obtener_terremoto():
     if usuario['locacion']['lon'] != '' and  usuario['locacion']['lat'] != '':
 
         url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
-    latitud = usuario['locacion']['lat']
-    longitud = usuario['locacion']['lon']
+        latitud = usuario['locacion']['lat']
+        longitud = usuario['locacion']['lon']
 
-    # Parámetros de la solicitud
-    parametros = {
-        "format": "geojson",
-        "latitude": latitud,
-        "longitude": longitud,
-        "maxradiuskm": 100,
-        "limit":1
-    }
+        # Parámetros de la solicitud
+        parametros = {
+            "format": "geojson",
+            "latitude": latitud,
+            "longitude": longitud,
+            "maxradiuskm": 100,
+            "limit":1
+        }
 
-    # Obtener la fecha actual
-    fecha_actual = dt.date.today()
-    fecha_actual_str = fecha_actual.strftime("%Y-%m-%d")
+        # Obtener la fecha actual
+        fecha_actual = dt.date.today()
+        fecha_actual_str = fecha_actual.strftime("%Y-%m-%d")
 
-    # Actualizar los parámetros de la solicitud con la fecha actual
-    parametros["endtime"] = fecha_actual_str
+        # Actualizar los parámetros de la solicitud con la fecha actual
+        parametros["endtime"] = fecha_actual_str
 
-    # Realizar la solicitud GET a la API de la USGS
-    response = requests.get(url, params=parametros)
+        # Realizar la solicitud GET a la API de la USGS
+        response = requests.get(url, params=parametros)
 
-    # Verificar el código de estado de la respuesta
-    if response.status_code == 200:
-        # Obtener los datos en formato JSON
-        datos = response.json()
-        #se extrae la información que se necesita del geojson
-        datos = datos['features']
-        # Verifico que si hayan datos disponibles
-        if datos[0] != None:
-            datos = datos[0]['properties']
+        # Verificar el código de estado de la respuesta
+        if response.status_code == 200:
+            # Obtener los datos en formato JSON
+            datos = response.json()
+            #se extrae la información que se necesita del geojson
+            datos = datos['features']
+            # Verifico que si hayan datos disponibles
+            if datos:
+                datos = datos[0]['properties']
 
-            mensaje = f"Hubo un terremoto cercano a ti, a {datos['place']}\nCon una magnitud de {datos['mag']}\n¿Te encuentras bien?"
-            
-            return mensaje
-    else:
-        print("Error al realizar la solicitud:", response.status_code)
+                mensaje = f"Hubo un terremoto cercano a ti, a {datos['place']}\nCon una magnitud de {datos['mag']}\n¿Te encuentras bien?"
+                
+                return mensaje
+        else:
+            print("Error al realizar la solicitud:", response.status_code)
 
 @bot.message_handler(commands=['start'])
 def comando_start(mensaje):
