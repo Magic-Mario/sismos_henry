@@ -49,7 +49,7 @@ def obtener_pais(pais):
         print("Error al obtener la lista de países:", response.status_code)
         return None
     
-def obtener_terremoto(pais):
+def obtener_terremoto():
     if usuario['locacion']['lon'] != '' and  usuario['locacion']['lat'] != '':
 
         url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
@@ -81,7 +81,7 @@ def obtener_terremoto(pais):
         datos = response.json()
         #se extrae la información que se necesita del geojson
         datos = datos['features']
-
+        # Verifico que si hayan datos disponibles
         if datos[0] != None:
             datos = datos[0]['properties']
 
@@ -149,12 +149,11 @@ def ubicacion_pais(mensaje):
 
     bot.send_message(mensaje.chat.id, f"Con esta información, te mantendré al tanto de los terremotos en tu area. ^^")
     print(usuario)
-    """bot.register_next_step_handler(bucle_tiempo)"""
+    bot.register_next_step_handler(mensaje,bucle_tiempo)
 
-"""def bucle_tiempo():
-    schedule.every(30).seconds.do(obtener_terremoto)
-    while True:
-        schedule.run_pending()"""
+def bucle_tiempo(mensaje):
+    terremoto = obtener_terremoto()
+    bot.send_message(mensaje.chat.id, terremoto)
 
 
 
