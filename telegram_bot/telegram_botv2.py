@@ -1,7 +1,8 @@
 from configuracion import * #del archivo configuración, recojo el token
 import telebot # manejar la api de telegram
 import requests
-import schedule 
+import schedule
+import datetime as dt 
 from telebot.types import ReplyKeyboardMarkup #crear los botones
 from telebot.types import ReplyKeyboardRemove # para eliminar los botones
 
@@ -23,9 +24,6 @@ usuario = {'permiso':'',
                         'lat':'',
                         'lon':''}}
 
-#función del heart-rate
-def trabajo():
-    print('sigues allí?')
 
 def obtener_paises_por_continente(continente):
     url = f"https://restcountries.com/v3.1/region/{continente}"
@@ -50,6 +48,48 @@ def obtener_pais(pais):
     else:
         print("Error al obtener la lista de países:", response.status_code)
         return None
+    
+def obtener_terremoto(pais):
+    if usuario['locacion']['lon'] != '' and  usuario['locacion']['lat'] != '':
+
+        url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
+    latitud = usuario['locacion']['lat']
+    longitud = usuario['locacion']['lon']
+
+    # Parámetros de la solicitud
+    parametros = {
+        "format": "geojson",
+        "latitude": latitud,
+        "longitude": longitud,
+        "maxradiuskm": 100,
+        "limit":1
+    }
+
+    # Obtener la fecha actual
+    fecha_actual = dt.date.today()
+    fecha_actual_str = fecha_actual.strftime("%Y-%m-%d")
+
+    # Actualizar los parámetros de la solicitud con la fecha actual
+    parametros["endtime"] = fecha_actual_str
+
+    # Realizar la solicitud GET a la API de la USGS
+    response = requests.get(url, params=parametros)
+
+    # Verificar el código de estado de la respuesta
+    if response.status_code == 200:
+        # Obtener los datos en formato JSON
+        datos = response.json()
+        #se extrae la información que se necesita del geojson
+        datos = datos['features']
+
+        if datos[0] != None:
+            datos = datos[0]['properties']
+
+            mensaje = f"Hubo un terremoto cercano a ti, a {datos['place']}\nCon una magnitud de {datos['mag']}\n¿Te encuentras bien?"
+            
+            return mensaje
+    else:
+        print("Error al realizar la solicitud:", response.status_code)
 
 @bot.message_handler(commands=['start'])
 def comando_start(mensaje):
@@ -87,29 +127,40 @@ def permiso_y_continente(mensaje):
     
 
 def ubicacion_continente(mensaje):
+    #modifico el nombre de los Continentes para depueés buscarlos en la API
     continentes = {"America": 'Americas', "Europa" : 'Europe', "Asia" : "Asia", "Africa": "Africa", "Oceania": "Oceania"}
     usuario["locacion"]['continente'] = continentes[mensaje.text]
+    #busco los continentes para sacar los paises que este contiene
     paises = obtener_paises_por_continente(usuario["locacion"]['continente'])
+    #hago una lista de los paises para luego mostrarlas en un mensaje de Telegram
     paises = "\n".join(paises)
+    #Muestro los paises y espero que el usuario escriba uno de esos paises
     msg = bot.send_message(mensaje.chat.id, f"De los siguientes paises, dónde te encuentras? \n{paises}")
     bot.register_next_step_handler(msg, ubicacion_pais)
 
 def ubicacion_pais(mensaje):
+    #guardo el pais en el usuario
     usuario["locacion"]['pais'] = mensaje.text
-
+    #Encuento las coordenadas del pais  por la API
     datos = obtener_pais(usuario["locacion"]['pais'])
-
+    # Guardo las coordenadas
     usuario["locacion"]['lat']= datos[0]
     usuario["locacion"]['lon']= datos[1]
 
     bot.send_message(mensaje.chat.id, f"Con esta información, te mantendré al tanto de los terremotos en tu area. ^^")
+    print(usuario)
+    """bot.register_next_step_handler(bucle_tiempo)"""
+
+"""def bucle_tiempo():
+    schedule.every(30).seconds.do(obtener_terremoto)
+    while True:
+        schedule.run_pending()"""
+
 
 
 if __name__ == '__main__':
     print( 'EL bot está en funcionamiento')
 
     #El siguiente bucle manda un bip para saber si aún está funcionando el bot
-    """schedule.every(30).seconds.do(trabajo)
-    while True:
-        schedule.run_pending()"""
+    
     bot.infinity_polling() #bucle infinito donde se revisa si hay nuevos mensajes

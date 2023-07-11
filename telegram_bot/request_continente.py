@@ -28,10 +28,12 @@ def obtener_pai(pais):
 
     if response.status_code == 200:
         datos = response.json()
+        print(datos)
         datos = [dato['latlng'] for dato in datos]
         return datos[0]
     else:
         print("Error al obtener la lista de países:", response.status_code)
         return None
     
-print(obtener_pai('Colombia'))
+print(obtener_pai('chile'))
+
