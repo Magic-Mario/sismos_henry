@@ -20,7 +20,9 @@ app = FastAPI(
     },
 )
 
-password = os.environ["MONGODB_PASSWORD"]
+# password = os.environ["MONGODB_PASSWORD"]
+
+password='picassojp'
 
 #datos para acceder a la base de datos
 uri = f"mongodb+srv://picassojp:{password}@cluster0.cchanol.mongodb.net/?retryWrites=true&w=majority"
@@ -68,17 +70,6 @@ async def get_quakes_by_depth(min_depth: float = Path(0), max_depth: float = Pat
         quake_list.append(quake) # se apendean los documentos en una lista
     return quake_list
 
-# @app.get("/country/{country}")
-# async def get_quakes_by_country(country: str):
-#     """
-#     Esta función devuelve todos los registros de sismos según alguno de los tres países posibles: usa, japan y chile.
-#     """
-#     quake_list = []
-#     for quake in collection.find({"country": country}):
-#         quake["_id"] = str(quake["_id"])
-#         quake_list.append(quake)
-#     return quake_list
-
 @app.get("/country/{country}")
 async def get_quakes_by_country(country: str, latest: bool = False):
     """
@@ -86,33 +77,20 @@ async def get_quakes_by_country(country: str, latest: bool = False):
     Si latest es True, devuelve solo el registro más reciente.
     """
     if latest:
-        quake = collection.find({"country": country}, 
-                                {"id": 1, "mag": 1, "depth": 1}).sort("time", -1).limit(1)
-        if quake:
+        cursor = collection.find({"country": country}, 
+                                {"_id": 1, "id": 1, "mag": 1, "depth": 1}).sort("time", -1).limit(1) #se usa la proyección de mongoDB para filtrar las variables de interés, se ordenan de forma decreciente y se limita la salida a 1
+        try:
+            quake = next(cursor)
             quake["_id"] = str(quake["_id"])
             return quake
-        return {}
+        except StopIteration: #maneja la excepción de que la consulta no devuelva ningún registro
+            return {}
     else:
         quake_list = []
         for quake in collection.find({"country": country}):
             quake["_id"] = str(quake["_id"])
             quake_list.append(quake)
         return quake_list
-
-# @app.get("/country/{country}")
-# async def get_quakes_by_country_limit(country: str):
-#     """
-#     Esta función devuelve el registro más reciente de sismos según alguno de los tres países posibles: usa, japan y chile.
-#     """
-#     quake = collection.find({"country": country}, 
-#                             {"id": 1, "mag": 1, "depth": 1}).sort("time", -1).limit(1)
-                            
-#     if quake: # Si hay un resultado
-#         quake["_id"] = str(quake["_id"]) # Se modifica el formato del id de MongoDB (BSON)
-#         return quake
-    
-#     return {} # Devuelve un objeto vacío si no se encuentra ningún resultado
-
 
 @app.on_event("shutdown")
 def shutdown_event():
