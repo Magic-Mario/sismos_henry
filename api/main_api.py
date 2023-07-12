@@ -79,6 +79,21 @@ async def get_quakes_by_country(country: str):
         quake_list.append(quake)
     return quake_list
 
+@app.get("/country/{country}")
+async def get_quakes_by_country_limit(country: str):
+    """
+    Esta función devuelve el registro más reciente de sismos según alguno de los tres países posibles: usa, japan y chile.
+    """
+    quake = collection.find({"country": country}, 
+                            {"id": 1, "mag": 1, "depth": 1}).sort("time", -1).limit(1)
+                            
+    if quake: # Si hay un resultado
+        quake["_id"] = str(quake["_id"]) # Se modifica el formato del id de MongoDB (BSON)
+        return quake
+    
+    return {} # Devuelve un objeto vacío si no se encuentra ningún resultado
+
+
 @app.on_event("shutdown")
 def shutdown_event():
     client.close()
