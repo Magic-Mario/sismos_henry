@@ -20,9 +20,7 @@ app = FastAPI(
     },
 )
 
-# password = os.environ["MONGODB_PASSWORD"]
-
-password='picassojp'
+password = os.environ["MONGODB_PASSWORD"]
 
 #datos para acceder a la base de datos
 uri = f"mongodb+srv://picassojp:{password}@cluster0.cchanol.mongodb.net/?retryWrites=true&w=majority"
