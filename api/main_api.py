@@ -3,6 +3,8 @@ from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from datetime import datetime
 import os
+from pydantic import BaseModel
+
 
 description = """
 Este sistema permite realizar diversas consultas sobre sismos registrados en Estados Unidos, Japón y Chile 
@@ -20,9 +22,7 @@ app = FastAPI(
     },
 )
 
-# password = os.environ["MONGODB_PASSWORD"]
-
-password='picassojp'
+password = os.environ["MONGODB_PASSWORD"]
 
 #datos para acceder a la base de datos
 uri = f"mongodb+srv://picassojp:{password}@cluster0.cchanol.mongodb.net/?retryWrites=true&w=majority"
@@ -30,6 +30,12 @@ client = MongoClient(uri, server_api=ServerApi('1'))
 
 db = client["pf-henry"] #base de datos
 collection = db["db-pf-henry"] #colección
+user_collection = db["users"] #colección 'users' del bot
+
+
+class User(BaseModel):
+    id_chat: str
+    country: str
 
 @app.get("/date/")
 async def get_quakes_by_date(start_date: str, end_date: str):
@@ -91,6 +97,20 @@ async def get_quakes_by_country(country: str, latest: bool = False):
             quake["_id"] = str(quake["_id"])
             quake_list.append(quake)
         return quake_list
+    
+@app.post("/user", response_model=User)
+async def create_user(user: User):
+    """
+    Esta función registra el nuevo usuario del bot en la base de datos de Mongo "users".
+    """
+    if hasattr(user, 'id'):
+        delattr(user, 'id')
+    user_data = user.dict()
+    user_data["id_chat"] = str(user_data["id_chat"])
+    user_id = user_collection.insert_one(user_data) # Inserta los datos en la colección
+    user_data["id"] = str(user_id.inserted_id) # Convierte el ObjectId a str
+    return user_data # Devuelve los datos de usuario con el id incluido
+
 
 @app.on_event("shutdown")
 def shutdown_event():
