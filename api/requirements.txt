@@ -1,0 +1,5 @@
+DateTime==5.1
+fastapi==0.89.1
+pandas
+uvicorn==0.20.0
+pymongo
