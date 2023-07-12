@@ -111,9 +111,12 @@ async def predict_quake(depth: float, magnitude: float):
 
     # Hacer la predicción
     prediction = model.predict(input_data)
+    
+    # Convertir la predicción a un entero de Python
+    prediction = int(prediction[0])
 
     # Devolver la predicción
-    return {"prediction": prediction[0]}
+    return {"prediction": prediction}
 
 
 
