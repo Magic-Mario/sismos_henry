@@ -99,15 +99,15 @@ if metadata is not None:
     last_query_time = metadata["value"]
 else:
     # En caso de que no exista la metadata en la base de datos, se establece el valor inicial
-    last_query_time = "2018-01-01"
+    last_query_time = pd.Timestamp.now().isoformat()
 
 #variable para pruebas
-# last_query_time = "2018-01-02T13:00:00"
+# last_query_time = "2016-01-01"
 
 #### funciones del programa
 
 #función para búsqueda de país dentro de las propiedades de la respuesta de la API
-def find_country(place):  # sourcery skip: use-next
+def find_country(place):
     # busca en la lista de paises
     for pais in paises:
         if pais.lower() in place.lower():
@@ -128,7 +128,7 @@ def main():
             endtime = pd.Timestamp.now()
 
             # configura el parámetro de finalización para ser una hora después del tiempo de inicio
-            params["endtime"] = (pd.Timestamp(params["starttime"]) + timedelta(hours=24)).isoformat()
+            params["endtime"] = (pd.Timestamp(params["starttime"]) + timedelta(hours=1)).isoformat()
 
             if pd.Timestamp(params["endtime"]) > endtime:
                 params["endtime"] = endtime.isoformat()
@@ -150,6 +150,7 @@ def main():
 
             filtered_features = []
 
+            #iteración sobre todos los registros que trajo la consulta
             for feature in features:
                 if 'place' in feature['properties']:
                     place = feature['properties']['place']
@@ -239,9 +240,9 @@ def main():
         except Exception as e:
             print(f"Error al llamar a la API: {e}", file=sys.stderr)
 
-        # Espera una hora antes de la próxima iteración
+        # Espera los segundos establecidos antes de la próxima iteración
         # time.sleep(3600)
-        time.sleep(30)
+        time.sleep(15)
 
 
 if __name__ == "__main__":
