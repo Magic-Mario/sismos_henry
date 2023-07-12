@@ -4,6 +4,8 @@ from pymongo.server_api import ServerApi
 from datetime import datetime
 import os
 from pydantic import BaseModel
+import pickle
+
 
 
 description = """
@@ -32,6 +34,10 @@ db = client["pf-henry"] #base de datos
 collection = db["db-pf-henry"] #colección
 user_collection = db["users"] #colección 'users' del bot
 
+
+# Cargar el modelo
+with open('classf_model.pkl', 'rb') as f:
+    model = pickle.load(f)
 
 class User(BaseModel):
     id_chat: str
@@ -97,7 +103,20 @@ async def get_quakes_by_country(country: str, latest: bool = False):
             quake["_id"] = str(quake["_id"])
             quake_list.append(quake)
         return quake_list
-    
+
+@app.get("/predict")
+async def predict_quake(depth: float, magnitude: float):
+    # Transformar los datos de entrada en la forma que el modelo espera
+    input_data = [[depth, magnitude]]
+
+    # Hacer la predicción
+    prediction = model.predict(input_data)
+
+    # Devolver la predicción
+    return {"prediction": prediction[0]}
+
+
+
 @app.post("/user", response_model=User)
 async def create_user(user: User):
     """
