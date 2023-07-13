@@ -1,10 +1,11 @@
-from fastapi import FastAPI, Path
+from fastapi import FastAPI, Path, Query
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from datetime import datetime
 import os
 from pydantic import BaseModel
 import pickle
+from typing import List, Optional
 
 
 
@@ -90,7 +91,7 @@ async def get_quakes_by_country(country: str, latest: bool = False):
     """
     if latest:
         cursor = collection.find({"country": country}, 
-                                {"_id": 1, "id": 1, "mag": 1, "depth": 1}).sort("time", -1).limit(1) #se usa la proyección de mongoDB para filtrar las variables de interés, se ordenan de forma decreciente y se limita la salida a 1
+                                {"_id": 1, "id": 1, "mag": 1, "depth": 1, "time":1, "place": 1}).sort("time", -1).limit(1) #se usa la proyección de mongoDB para filtrar las variables de interés, se ordenan de forma decreciente y se limita la salida a 1
         try:
             quake = next(cursor)
             quake["_id"] = str(quake["_id"])
@@ -118,6 +119,21 @@ async def predict_quake(depth: float, magnitude: float):
     # Devolver la predicción
     return {"prediction": prediction}
 
+from typing import List, Optional
+
+@app.get("/user_data", response_model=List[User])
+async def read_users(countries: Optional[List[str]] = Query(None), id_chats: Optional[List[str]] = Query(None)):
+    """
+    Devuelve los usuarios que cumplen con las condiciones de búsqueda en la base de datos. Si no se proporciona ningún
+    criterio, se devolverán todos los usuarios.
+    """
+    query = {}
+    if countries is not None:
+        query["country"] = {"$in": countries}
+    if id_chats is not None:
+        query["id_chat"] = {"$in": id_chats}
+    users = user_collection.find(query)
+    return [User(**user) for user in users]
 
 
 @app.post("/user", response_model=User)
