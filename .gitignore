@@ -1,3 +1,5 @@
 data_eda/
 .env
 api/__pycache__/main_api.cpython-310.pyc
+model/
+venv/
