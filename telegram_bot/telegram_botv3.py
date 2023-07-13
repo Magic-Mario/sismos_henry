@@ -163,14 +163,14 @@ def ubicacion_pais(mensaje):
         bot.send_message(mensaje.chat.id, f"Con esta información, te mantendré al tanto de los terremotos en tu area. ^^ \nEn caso de querer detener el bot, presiona o escribe /stop")
 
         # Comienza el bucle de mandar reportes de terremotos
-        schedule.every(20).seconds.do(reporte_terremoto(mensaje))
+        schedule.every(20).seconds.do(reporte_terremoto,mensaje)
         while True:
             schedule.run_pending()
             time.sleep(10)
 
-@bot.message_handler(commands=['/stop'])
+@bot.message_handler(commands=['stop'])
 def detener(mensaje):
-    bot.send_message(mensaje.chat.id, f"Se ha detenido el bot, si deseas volver a inicialo, presiona: /start.")
+    bot.send_message(mensaje.chat.id, f"Se ha detenido el bot, si deseas volver a iniciarlo, presiona: /start.")
     schedule.clear()
     
 
