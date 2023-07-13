@@ -4,7 +4,6 @@ import requests
 import schedule
 import datetime as dt 
 from telebot.types import ReplyKeyboardMarkup #crear los botones
-from telebot.types import ReplyKeyboardRemove # para eliminar los botones
 
 
 bot = telebot.TeleBot(token) #creo el bot
@@ -15,29 +14,28 @@ botones = ReplyKeyboardMarkup(one_time_keyboard=True,
                                   resize_keyboard=True
                                  ) #los botones que coloque, se borraran al hundirlos
 #creamos los 2 botones
-botones.add("acepto", "no acepto")
+botones.add("Acepto", "No acepto")
+
+
+botones_pais = ReplyKeyboardMarkup(one_time_keyboard=True,
+                                input_field_placeholder="Pulsa un botón",
+                                resize_keyboard=True
+                                ) #los botones que coloque, se borraran al hundirlos
+#creamos los 3 botones de los paises
+botones_pais.add("Estados Unidos", "Chile", "Japón")
+
+
 
 #Datos de los usuarios
 usuario = {'permiso':'',
-           'locacion': {'continente': '',
-                        'pais':'',
+           'locacion': {'pais':'',
                         'lat':'',
                         'lon':''}}
 
 Lista_paises = ''
 
-def obtener_paises_por_continente(continente):
-    url = f"https://restcountries.com/v3.1/region/{continente}"
-    response = requests.get(url)
 
-    if response.status_code == 200:
-        datos = response.json()
-        paises = [pais['name']['common'] for pais in datos]
-        return paises
-    else:
-        print("Error al obtener la lista de países:", response.status_code)
-        return None
-    
+
 def obtener_pais(pais):
     url = f"https://restcountries.com/v2/name/{pais}"
     response = requests.get(url)
@@ -48,8 +46,10 @@ def obtener_pais(pais):
         return datos[0]
     else:
         print("Error al obtener la lista de países:", response.status_code)
-        return None
-    
+        return None    
+
+
+
 def obtener_terremoto():
     if usuario['locacion']['lon'] != '' and  usuario['locacion']['lat'] != '':
 
@@ -113,79 +113,53 @@ def comando_start(mensaje):
     msg = bot.send_message(mensaje.chat.id,'Aceptas que tengamos tu ubicación',reply_markup=botones)
 
     #guardamos el resultado en una variable con un función
-    bot.register_next_step_handler(msg, permiso_y_continente)
+    bot.register_next_step_handler(msg, permiso)
 
 
 
-def permiso_y_continente(mensaje):
+def permiso(mensaje):
     """Guardamos el permiso del usuario """
 
-    botones_continente = ReplyKeyboardMarkup(one_time_keyboard=True,
-                                  input_field_placeholder="Pulsa un botón",
-                                  resize_keyboard=True
-                                 ) #los botones que coloque, se borraran al hundirlos
-    
-
-    #creamos los 5 botones
-    botones_continente.add("America", "Europa", "Asia", "Africa", "Oceania")
-
     #si el listillo escribe en vez de usar los botones:
-    if mensaje.text != "acepto" and mensaje.text != "no acepto":
+    if mensaje.text != "Acepto" and mensaje.text != "No acepto":
         #le decimos al usuario que escoja una opción valida de los bontones:
         msg = bot.send_message(mensaje.chat.id, "ERROR: Opción no valida.\nEscoge una opción de los botones", reply_markup=botones)
         #vuelvo a repetir la función para guardar
-        bot.register_next_step_handler(msg,permiso_y_continente)
+        bot.register_next_step_handler(msg,permiso)
     elif mensaje.text == "no acepto":
         msg = bot.send_message(mensaje.chat.id, "Está bien, siendo el caso, no podré notificarte. En caso de querer reiniciar el proceso, presiona /start")
     else: #por si coloco una respuesta correcta
-        msg = bot.send_message(mensaje.chat.id, "Perfecto, en que continente te encuentras? ", reply_markup= botones_continente)
+        msg = bot.send_message(mensaje.chat.id, "Perfecto, en qué pais te encuentras? ", reply_markup= botones_pais)
         usuario["permiso"] = mensaje.text
-        bot.register_next_step_handler(msg,ubicacion_continente)
+        bot.register_next_step_handler(msg,ubicacion_pais)
     
 
-def ubicacion_continente(mensaje):
-    #modifico el nombre de los Continentes para depueés buscarlos en la API
-    continentes = {"America": 'Americas', "Europa" : 'Europe', "Asia" : "Asia", "Africa": "Africa", "Oceania": "Oceania"}
-    usuario["locacion"]['continente'] = continentes[mensaje.text]
-    #busco los continentes para sacar los paises que este contiene
-    global Lista_paises
-    Lista_paises = obtener_paises_por_continente(usuario["locacion"]['continente'])
-    #hago una lista de los paises para luego mostrarlas en un mensaje de Telegram
-    paises = "\n".join(Lista_paises)
-    #Muestro los paises y espero que el usuario escriba uno de esos paises
-    msg = bot.send_message(mensaje.chat.id, f"De los siguientes paises, dónde te encuentras? \n{paises}")
-
-    bot.register_next_step_handler(msg, ubicacion_pais)
 
 def ubicacion_pais(mensaje):
-    print (mensaje)
     #consulto si el pais que escogió sí está en la lista de los paises
-    if mensaje.text.lower().title() not in Lista_paises:
-        #le decimos al usuario que escriba un pais correcto:
-        msg = bot.send_message(mensaje.chat.id, "ERROR: Opción no valida.\nEscoge un pais valido")
+    if mensaje.text != "Estados Unidos" and mensaje.text != "Chile" and mensaje.text != "Japón" :
+        #le decimos al usuario que escoja una opción valida de los bontones:
+        msg = bot.send_message(mensaje.chat.id, "ERROR: Opción no valida.\nEscoge una opción de los botones", reply_markup=botones_pais)
         #vuelvo a repetir la función para guardar
         bot.register_next_step_handler(msg,ubicacion_pais)
-    #guardo el pais en el usuario
-    usuario["locacion"]['pais'] = mensaje.text
-    #Encuento las coordenadas del pais  por la API
-    datos = obtener_pais(usuario["locacion"]['pais'])
-    # Guardo las coordenadas
-    usuario["locacion"]['lat']= datos[0]
-    usuario["locacion"]['lon']= datos[1]
+    else:
+        #modifico el string del pais para poder buscarlo
+        paises = {"Estados Unidos":"United States of America","Japón":"Japan","Chile":"Chile"}
+        #guardo el pais en el usuario
+        
+        usuario["locacion"]['pais'] = paises[mensaje.text]
+        #Encuento las coordenadas del pais  por la API
+        datos = obtener_pais(usuario["locacion"]['pais'])
+        # Guardo las coordenadas
+        usuario["locacion"]['lat']= datos[0]
+        usuario["locacion"]['lon']= datos[1]
 
-    bot.send_message(mensaje.chat.id, f"Con esta información, te mantendré al tanto de los terremotos en tu area. ^^")
-    print(usuario)
-    bot.register_next_step_handler(mensaje,bucle_tiempo)
-
-def bucle_tiempo(mensaje):
-    terremoto = obtener_terremoto()
-    bot.send_message(mensaje.chat.id, terremoto)
-
-
+        bot.send_message(mensaje.chat.id, f"Con esta información, te mantendré al tanto de los terremotos en tu area. ^^")
+        print(usuario)
+        terremoto = obtener_terremoto()
+        bot.send_message(mensaje.chat.id, terremoto)
+    
 
 if __name__ == '__main__':
     print( 'EL bot está en funcionamiento')
-
-
-    
     bot.infinity_polling() #bucle infinito donde se revisa si hay nuevos mensajes
