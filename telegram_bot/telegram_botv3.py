@@ -170,8 +170,9 @@ def ubicacion_pais(mensaje):
 
 @bot.message_handler(commands=['/stop'])
 def detener(mensaje):
-    schedule.clear()
     bot.send_message(mensaje.chat.id, f"Se ha detenido el bot, si deseas volver a inicialo, presiona: /start.")
+    schedule.clear()
+    
 
 
 if __name__ == '__main__':
