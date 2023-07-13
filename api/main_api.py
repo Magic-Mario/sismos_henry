@@ -104,7 +104,7 @@ async def get_quakes_by_country(country: str, latest: bool = False):
             quake_list.append(quake)
         return quake_list
 
-@app.get("/predict")
+@app.get("/classf")
 async def predict_quake(depth: float, magnitude: float):
     # Transformar los datos de entrada en la forma que el modelo espera
     input_data = [[depth, magnitude]]
@@ -116,7 +116,7 @@ async def predict_quake(depth: float, magnitude: float):
     prediction = int(prediction[0])
 
     # Devolver la predicción
-    return {"prediction": prediction}
+    return {"classification": prediction}
 
 
 
