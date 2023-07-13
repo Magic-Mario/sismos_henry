@@ -28,77 +28,38 @@ botones_pais.add("Estados Unidos", "Chile", "Japón")
 
 
 #Datos de los usuarios
-usuario = {'permiso':'',
-           'locacion': {'pais':'',
-                        'lat':'',
-                        'lon':''}}
-
-
-
-def obtener_pais(pais):
-    url = f"https://restcountries.com/v2/name/{pais}"
-    response = requests.get(url)
-
-    if response.status_code == 200:
-        datos = response.json()
-        datos = [dato['latlng'] for dato in datos]
-        return datos[0]
-    else:
-        print("Error al obtener la lista de países:", response.status_code)
-        return None    
+usuario = {'codigo':'',
+           'pais':''}
 
 
 
 def obtener_terremoto():
-    if usuario['locacion']['lon'] != '' and  usuario['locacion']['lat'] != '':
 
-        url = "https://earthquake.usgs.gov/fdsnws/event/1/query"
-        latitud = usuario['locacion']['lat']
-        longitud = usuario['locacion']['lon']
+    # Realizar la solicitud GET a la API de la USGS
+    response = requests.get(f"https://henrypf-sismos-prueba.onrender.com/country/{usuario['pais']}?latest=true")
 
-        # Parámetros de la solicitud
-        parametros = {
-            "format": "geojson",
-            "latitude": latitud,
-            "longitude": longitud,
-            "maxradiuskm": 100,
-            "limit":1
-        }
+    # Verificar el código de estado de la respuesta
+    if response.status_code == 200:
 
-        # Obtener la fecha actual
-        fecha_actual = dt.date.today()
-        fecha_actual_str = fecha_actual.strftime("%Y-%m-%d")
+        # Obtener los datos en formato JSON
+        datos = response.json()
 
-        # Actualizar los parámetros de la solicitud con la fecha actual
-        parametros["endtime"] = fecha_actual_str
+        #se extrae la información que se necesita del geojson
 
-        # Realizar la solicitud GET a la API de la USGS
-        response = requests.get(url, params=parametros)
+        # Verifico que si hayan datos disponibles
+        if datos:
 
-        # Verificar el código de estado de la respuesta
-        if response.status_code == 200:
-
-            # Obtener los datos en formato JSON
-            datos = response.json()
-
-            #se extrae la información que se necesita del geojson
-            datos = datos['features']
-
-            # Verifico que si hayan datos disponibles
-            if datos:
-
-                datos = datos[0]['properties']
-
-                mensaje = f"Hubo un terremoto cercano a ti, a {datos['place']}\nCon una magnitud de {datos['mag']}\n¿Te encuentras bien?"
-                
-                return mensaje
-            else:
-
-                mensaje = "No ha pasado nada"
-
-                return mensaje
+            mensaje = f"Hubo un terremoto cercano a ti.\nCon una magnitud de {datos['mag']} a profundidad de {datos['depth']} km.\n¿Te encuentras bien?"
+            
+            return mensaje
         else:
-            print("Error al realizar la solicitud:", response.status_code)
+
+            mensaje = "No ha pasado nada"
+
+            return mensaje
+    else:
+        print("Error al realizar la solicitud:", response.status_code)
+
 
 
 def reporte_terremoto(mensaje):
@@ -106,6 +67,8 @@ def reporte_terremoto(mensaje):
 
     if terremoto != "No ha pasado nada":
         bot.send_message(mensaje.chat.id, terremoto)
+
+
 
 @bot.message_handler(commands=['start'])
 def comando_start(mensaje):
@@ -123,7 +86,6 @@ def comando_start(mensaje):
 
 def permiso(mensaje):
     """Guardamos el permiso del usuario """
-
     #si el listillo escribe en vez de usar los botones:
     if mensaje.text != "Acepto" and mensaje.text != "No acepto":
         #le decimos al usuario que escoja una opción valida de los bontones:
@@ -134,7 +96,7 @@ def permiso(mensaje):
         msg = bot.send_message(mensaje.chat.id, "Está bien, siendo el caso, no podré notificarte. En caso de querer reiniciar el proceso, presiona /start")
     else: #por si coloco una respuesta correcta
         msg = bot.send_message(mensaje.chat.id, "Perfecto, en qué pais te encuentras? ", reply_markup= botones_pais)
-        usuario["permiso"] = mensaje.text
+        usuario["codigo"] = mensaje.chat.id
         bot.register_next_step_handler(msg,ubicacion_pais)
     
 
@@ -148,15 +110,10 @@ def ubicacion_pais(mensaje):
         bot.register_next_step_handler(msg,ubicacion_pais)
     else:
         #modifico el string del pais para poder buscarlo
-        paises = {"Estados Unidos":"United States of America","Japón":"Japan","Chile":"Chile"}
+        paises = {"Estados Unidos":"usa","Japón":"japan","Chile":"chile"}
         #guardo el pais en el usuario
         
-        usuario["locacion"]['pais'] = paises[mensaje.text]
-        #Encuento las coordenadas del pais  por la API
-        datos = obtener_pais(usuario["locacion"]['pais'])
-        # Guardo las coordenadas
-        usuario["locacion"]['lat']= datos[0]
-        usuario["locacion"]['lon']= datos[1]
+        usuario['pais'] = paises[mensaje.text]
 
         bot.send_message(mensaje.chat.id, f"Con esta información, te mantendré al tanto de los terremotos en tu area. ^^ \nEn caso de querer detener el bot, presiona o escribe /stop")
 
@@ -165,6 +122,9 @@ def ubicacion_pais(mensaje):
         while True:
             schedule.run_pending()
             time.sleep(10)
+
+
+
 
 @bot.message_handler(commands=['stop'])
 def detener(mensaje):
