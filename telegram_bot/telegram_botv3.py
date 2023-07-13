@@ -105,6 +105,7 @@ def obtener_terremoto():
 
 def reporte_terremoto(mensaje):
     terremoto = obtener_terremoto()
+
     if terremoto != "No ha pasado nada":
         bot.send_message(mensaje.chat.id, terremoto)
 
@@ -162,7 +163,7 @@ def ubicacion_pais(mensaje):
         bot.send_message(mensaje.chat.id, f"Con esta información, te mantendré al tanto de los terremotos en tu area. ^^ \nEn caso de querer detener el bot, presiona o escribe /stop")
 
         # Comienza el bucle de mandar reportes de terremotos
-        schedule.every(20).seconds.do(reporte_terremoto)
+        schedule.every(20).seconds.do(reporte_terremoto(mensaje))
         while True:
             schedule.run_pending()
             time.sleep(10)
