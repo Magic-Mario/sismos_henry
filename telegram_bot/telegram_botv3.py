@@ -1,8 +1,9 @@
-from configuracion import * #del archivo configuración, recojo el token
+from configuracion import * # el archivo configuración, recojo el token
 import telebot # manejar la api de telegram
-import requests
-import schedule
-import datetime as dt 
+import requests #hacer las peticiones a las api
+import schedule #hacer tareas para cumplir
+import datetime as dt #modificar las fechas de la api gringa
+import time
 from telebot.types import ReplyKeyboardMarkup #crear los botones
 
 
@@ -102,6 +103,10 @@ def obtener_terremoto():
             print("Error al realizar la solicitud:", response.status_code)
 
 
+def reporte_terremoto(mensaje):
+    terremoto = obtener_terremoto()
+    if terremoto != "No ha pasado nada":
+        bot.send_message(mensaje.chat.id, terremoto)
 
 @bot.message_handler(commands=['start'])
 def comando_start(mensaje):
@@ -154,12 +159,21 @@ def ubicacion_pais(mensaje):
         usuario["locacion"]['lat']= datos[0]
         usuario["locacion"]['lon']= datos[1]
 
-        bot.send_message(mensaje.chat.id, f"Con esta información, te mantendré al tanto de los terremotos en tu area. ^^")
-        print(usuario)
-        terremoto = obtener_terremoto()
-        bot.send_message(mensaje.chat.id, terremoto)
-    
+        bot.send_message(mensaje.chat.id, f"Con esta información, te mantendré al tanto de los terremotos en tu area. ^^ \nEn caso de querer detener el bot, presiona o escribe /stop")
+
+        # Comienza el bucle de mandar reportes de terremotos
+        schedule.every(20).seconds.do(reporte_terremoto)
+        while True:
+            schedule.run_pending()
+            time.sleep(10)
+
+@bot.message_handler(commands=['/stop'])
+def detener(mensaje):
+    schedule.clear()
+    bot.send_message(mensaje.chat.id, f"Se ha detenido el bot, si deseas volver a inicialo, presiona: /start.")
+
 
 if __name__ == '__main__':
     print( 'EL bot está en funcionamiento')
     bot.infinity_polling() #bucle infinito donde se revisa si hay nuevos mensajes
+
