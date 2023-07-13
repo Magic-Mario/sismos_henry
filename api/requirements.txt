@@ -4,4 +4,3 @@ pydantic==1.8.2
 pandas
 uvicorn==0.20.0
 pymongo
-scikit-learn==1.3.0
