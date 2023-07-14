@@ -6,6 +6,7 @@ import os
 from pydantic import BaseModel
 import pickle
 from typing import List, Optional
+import numpy as np
 
 
 description = """
