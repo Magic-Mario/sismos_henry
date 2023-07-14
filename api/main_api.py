@@ -27,6 +27,7 @@ app = FastAPI(
 
 password = os.environ["MONGODB_PASSWORD"]
 
+
 # datos para acceder a la base de datos
 uri = f"mongodb+srv://picassojp:{password}@cluster0.cchanol.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(uri, server_api=ServerApi("1"))
@@ -163,11 +164,10 @@ async def predict_quake(depth: float, magnitude: float):
     mapped_array = map_func(prediction)
 
     alert = classify_magnitude(input_data[0][1])
+    print(mapped_array)
+    print(alert)
     # Devolver la predicción
-    return {"classification": mapped_array, "alert":alert}
-
-
-from typing import List, Optional
+    return {"classification": mapped_array.tolist(), "alert": alert}
 
 
 @app.get("/user_data", response_model=List[User])
