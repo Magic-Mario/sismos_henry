@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Path, Query
+from fastapi import FastAPI, Path, Query, HTTPException
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from datetime import datetime
+from dateutil import parser
 import os
 from pydantic import BaseModel
 import pickle
@@ -48,19 +49,22 @@ class User(BaseModel):
 
 
 @app.get("/date/")
-async def get_quakes_by_date(start_date: str, end_date: str):
+async def get_quakes_by_date(start_date: str, end_date: str, limit: int = 10000):
     """
-    Esta función devuelve una lista con todos los registros de sismos entre dos fechas.
+    Esta función devuelve una lista con los registros de sismos entre dos fechas especificadas (formato mm/dd/aa) con un límite predeterminado de 10000 registros.
     """
 
-    start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
-    end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
+    try:
+        start_date_obj = parser.parse(start_date)  # convierte la fecha al formato necesario para la request
+        end_date_obj = parser.parse(end_date)
+    except ValueError:  # manejo de error con el formato de la fecha
+        raise HTTPException(status_code=400, detail="Fecha proporcionada en formato no válido. Por favor, proporciona una fecha válida.")
 
     quake_list = []
 
     for quake in collection.find(
         {"time": {"$gte": start_date_obj, "$lte": end_date_obj}}
-    ):  # se filtran los documentos según los valores de fechas
+    ).limit(limit):  # se filtran los documentos según los valores de fechas y se limita la cantidad de registros
         quake["_id"] = str(
             quake["_id"]
         )  # se modifica el formato del id de mongodb (bson)
@@ -73,7 +77,7 @@ async def get_quakes_by_magnitude(
     min_magnitude: float = Path(0.0), max_magnitude: float = Path(10.0)
 ):
     """
-    Esta función devuelve todos los registros de sismos según una magnitud mínima y una máxima. De forma predeterminada estos valores corresponden a los límites de la escala (0-10)
+    Esta función devuelve todos los registros de sismos según una magnitud mínima (límite inferior 0.0) y una máxima (límite superior 10.0). De forma predeterminada estos valores corresponden a los límites de la escala (0-10)
     """
     quake_list = []
     for quake in collection.find(
@@ -104,12 +108,23 @@ async def get_quakes_by_depth(
     return quake_list
 
 
+country_traduccion = {
+    "estados unidos": "usa",
+    "japon": "japan",
+    "japón": "japan",
+}  # un diccionario para traducir los nombres de los países
+
 @app.get("/country/{country}")
-async def get_quakes_by_country(country: str, latest: bool = False):
+async def get_quakes_by_country(country: str, latest: bool = False, limit: Optional[int] = None):
     """
-    Esta función devuelve todos los registros de sismos según alguno de los tres países posibles: usa, japan y chile.
+    Esta función devuelve todos los registros de sismos según alguno de los tres países posibles: "usa", "japan" y "chile".
     Si latest es True, devuelve solo el registro más reciente.
     """
+    country = country.lower()  # convierte el nombre del país a minúsculas
+    
+    if country in country_traduccion:
+        country = country_traduccion[country]  # traduce el nombre del país si es necesario
+    
     if latest:
         cursor = (
             collection.find(
@@ -117,19 +132,19 @@ async def get_quakes_by_country(country: str, latest: bool = False):
                 {"_id": 1, "id": 1, "mag": 1, "depth": 1, "time": 1, "place": 1},
             )
             .sort("time", -1)
-            .limit(1)
-        )  # se usa la proyección de mongoDB para filtrar las variables de interés, se ordenan de forma decreciente y se limita la salida a 1
+            .limit(1))  # se usa la proyección de mongoDB para filtrar las variables de interés, se ordenan de forma decreciente y se limita la salida a 1
         try:
             quake = next(cursor)
             quake["_id"] = str(quake["_id"])
             return quake
-        except (
-            StopIteration
-        ):  # maneja la excepción de que la consulta no devuelva ningún registro
+        except (StopIteration):  # maneja la excepción de que la consulta no devuelva ningún registro
             return {}
     else:
         quake_list = []
-        for quake in collection.find({"country": country}):
+        query = collection.find({"country": country}).sort("time", -1)
+        if limit is not None:
+            query = query.limit(limit)
+        for quake in query:
             quake["_id"] = str(quake["_id"])
             quake_list.append(quake)
         return quake_list
