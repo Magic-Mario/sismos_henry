@@ -136,6 +136,15 @@ async def get_quakes_by_country(country: str, latest: bool = False):
 
 
 def classify_magnitude(magnitude):
+    """
+    Clasifica la magnitud de un terremoto en una categoría específica.
+
+    Parámetros:
+    - magnitude (float): Magnitud del terremoto.
+
+    Retorna:
+    - categoría (str): Categoría a la que pertenece la magnitud del terremoto.
+    """
     if 0.0 <= magnitude <= 4.0:
         return "Generalmente no se siente, pero es registrado"
     elif 4.0 <= magnitude <= 6.0:
@@ -151,6 +160,18 @@ def classify_magnitude(magnitude):
 
 @app.get("/classf")
 async def predict_quake(depth: float, magnitude: float):
+    """
+    Realiza una predicción de clasificación de terremotos utilizando el modelo entrenado.
+
+    Parámetros:
+    - depth (float): Profundidad del terremoto.
+    - magnitude (float): Magnitud del terremoto.
+
+    Retorna:
+    - classification (list): Lista de etiquetas de clasificación para el terremoto.
+    - alert (str): Alerta asociada a la magnitud del terremoto.
+    """
+
     # Transformar los datos de entrada en la forma que el modelo espera
     input_data = [[depth, magnitude]]
 
@@ -164,8 +185,7 @@ async def predict_quake(depth: float, magnitude: float):
     mapped_array = map_func(prediction)
 
     alert = classify_magnitude(input_data[0][1])
-    print(mapped_array)
-    print(alert)
+
     # Devolver la predicción
     return {"classification": mapped_array.tolist(), "alert": alert}
 
