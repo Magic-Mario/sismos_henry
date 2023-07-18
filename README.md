@@ -21,7 +21,7 @@ Los objetivos de este proyecto son acciones concretas enfocadas en:
 ## Entregables Generados
 
 - Bot Telegram de alertas  [Link](https://t.me/Sismobot)
-- Pagina Web de Información [Link](https://sites.google.com/view/alertaterremoto/inicio)
+- Pagina Web de Información [Link](https://sites.google.com/view/alertaterremoto/seleccione-pais)
 - API de información y Registro
 - Base de Datos en Mongo DB
 - Sistema de Machine Learning de Clasificación
