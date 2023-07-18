@@ -32,9 +32,8 @@ def actualizar_mongo():
 
     # definición de constantes
     #clave para acceder a mongo
-    # password = os.getenv("MONGODB_PASSWORD")
+    password = os.getenv("MONGODB_PASSWORD")
     #print(password)
-    password = 'picassojp'
 
     # Crear un nuevo cliente y conectarse al servidor
     uri = f"mongodb+srv://picassojp:{password}@cluster0.cchanol.mongodb.net/?retryWrites=true&w=majority"
@@ -66,7 +65,7 @@ def actualizar_mongo():
     for id_, nuevo_time in zip(ids_a_actualizar, nuevos_valores_time):
         # Generar valores aleatorios para 'dep' y 'mag'
         nuevo_dep = random.randint(10, 999)
-        nuevo_mag = random.uniform(1, 10)  # Esto genera un float entre 1 y 10
+        nuevo_mag = round(random.uniform(1, 10), 2)  # Esto genera un float entre 1 y 10
 
         # Seleccionar una opción aleatoria de 'place' para este ID
         nuevo_place = random.choice(places_por_id[id_])
