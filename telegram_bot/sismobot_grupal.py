@@ -70,7 +70,7 @@ def informar_terremoto():
                     print(f"la diferencia entre hora actual y hora de la consulta es {diferencia}")
 
                     # Determino el valor de una hora 
-                    una_hora = dt.timedelta(hours=1)
+                    una_hora = dt.timedelta(hours=2/30)
 
                     # Se determina si el evento sismico sucedio hace una hora o menos
                     if diferencia.seconds <= una_hora.total_seconds():
@@ -97,9 +97,9 @@ def informar_terremoto():
             print("Error al realizar la solicitud:", consulta_pais.status_code)
 
 
-schedule.every(3).minutes.do(informar_terremoto)
+schedule.every(2).minutes.do(informar_terremoto)
 while True:
     schedule.run_pending()
-    time.sleep(30)
+    time.sleep(5)
 
     
