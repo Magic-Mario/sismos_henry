@@ -101,5 +101,3 @@ schedule.every(3).minutes.do(informar_terremoto)
 while True:
     schedule.run_pending()
     time.sleep(30)
-
-    

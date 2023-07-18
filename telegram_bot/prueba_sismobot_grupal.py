@@ -7,8 +7,9 @@ import os
 
 # definición de constantes
 #clave para acceder a mongo
-password = os.getenv("MONGODB_PASSWORD")
+# password = os.getenv("MONGODB_PASSWORD")
 #print(password)
+password = 'picassojp'
 
 # Crear un nuevo cliente y conectarse al servidor
 uri = f"mongodb+srv://picassojp:{password}@cluster0.cchanol.mongodb.net/?retryWrites=true&w=majority"
@@ -30,14 +31,28 @@ ids_a_actualizar = [
     "64b6b5f1a42c41e512af5b2e"
 ]
 
+
+# Definir los nuevos valores para 'time'
+nuevos_valores_time = [
+    datetime.datetime(2023, 7, 18, 21, 30, 2, 632905),
+    datetime.datetime(2023, 7, 18, 21, 31, 2, 632905),
+    datetime.datetime(2023, 7, 18, 21, 32, 2, 632905),
+    datetime.datetime(2023, 7, 18, 21, 33, 2, 632905),
+    datetime.datetime(2023, 7, 18, 21, 34, 2, 632905),
+    datetime.datetime(2023, 7, 18, 21, 35, 2, 632905),
+    datetime.datetime(2023, 7, 18, 21, 36, 2, 632905),
+    datetime.datetime(2023, 7, 18, 21, 37, 2, 632905),
+    datetime.datetime(2023, 7, 18, 21, 38, 2, 632905)
+]
+
 # Crear la lista de nuevos tiempos con intervalos de 30 segundos a partir del tiempo actual
 #tiempo_actual = datetime.datetime.now()
 tiempo_actual = datetime.datetime.utcnow()  # Usar utcnow en lugar de now
 
 print(tiempo_actual)
-nuevos_valores_time = [
-    tiempo_actual + datetime.timedelta(seconds=i*30)
-    for i in range(len(ids_a_actualizar))] #lista con los valores de tiempo a reemplazar con el formato requerido por BSON
+# nuevos_valores_time = [
+#     tiempo_actual + datetime.timedelta(seconds=i*30)
+#     for i in range(len(ids_a_actualizar))] #lista con los valores de tiempo a reemplazar con el formato requerido por BSON
 
 print(nuevos_valores_time)
 
