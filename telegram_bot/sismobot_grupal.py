@@ -20,7 +20,7 @@ def informar_terremoto():
         if consulta_pais.status_code == 200:
 
             # Mensaje en consola de la actividad hecha
-            print(f'datos obtenidos de {pais}')
+            print(f'Datos obtenidos de {pais}')
 
             # Transformo la consulta en formato JSON
             datos = consulta_pais.json()
@@ -30,7 +30,7 @@ def informar_terremoto():
             if datos:
 
                 #Mensaje en consola de la activida hecha
-                print(f'extrayendo datos de {pais}')
+                print(f' Extrayendo datos de {pais}')
 
                 # Determino la fecha de la consulta
                 tiempo = dt.datetime.strptime(datos['time'],"%Y-%m-%dT%H:%M:%S.%f")
@@ -46,7 +46,7 @@ def informar_terremoto():
                 if fecha == fecha_actual:
 
                     #Mensaje en consola de la activida hecha
-                    print( f'se confirma terremoto el mismo día en  {pais}')
+                    print( f'Se confirma terremoto el mismo día en  {pais}')
 
                     # Determino la hora de la consulta
                     hora = tiempo.time()
@@ -70,6 +70,12 @@ def informar_terremoto():
                         #Creo el mensaje para mandar por el bot
                         mensaje = f"Se identifico un terremoto a las {hora}.\n- Magnitud de {datos['mag']}\n- Profundidad de {datos['depth']} km.\n- Lugar {datos['place']}.\n- Clasificación: {datos_clasificacion['classification'][0]}\n- Observación: {datos_clasificacion['alert']}  "
                         bot.send_message(paises[pais], mensaje)
+                    else:
+                        # Mensajes en caso de que el evento no haya sucedido en un rango de una hora
+                        print(f'No ha habido evento en {pais} en un rango de una hora')
+                else:
+                    # Mensaje en consola en caso de que los datos no seán del mismo día
+                    print(f'Los datos de {pais} no son del mismo día')
             else:
                 # Mensaje en consola en caso de que no se hayan encontrado datos
                 print(f'No se encontraron datos de {pais}')
