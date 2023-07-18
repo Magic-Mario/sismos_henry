@@ -74,15 +74,14 @@ async def get_quakes_by_date(start_date: str, end_date: str, limit: int = 10000)
 
 @app.get("/magnitude/{min_magnitude}/{max_magnitude}")
 async def get_quakes_by_magnitude(
-    min_magnitude: float = Path(0.0), max_magnitude: float = Path(10.0)
-):
+    min_magnitude: float = Path(0.0), max_magnitude: float = Path(10.0), limit: int = 10000):
     """
     Esta función devuelve todos los registros de sismos según una magnitud mínima (límite inferior 0.0) y una máxima (límite superior 10.0). De forma predeterminada estos valores corresponden a los límites de la escala (0-10)
     """
     quake_list = []
     for quake in collection.find(
         {"mag": {"$gte": min_magnitude, "$lte": max_magnitude}}
-    ):  # se filtran los documentos según los valores de magnitud
+    ).limit(limit):  # se filtran los documentos según los valores de magnitud y se limita la cantidad de registros
         quake["_id"] = str(
             quake["_id"]
         )  # se modifica el formato del id de mongodb (bson)
@@ -92,15 +91,14 @@ async def get_quakes_by_magnitude(
 
 @app.get("/depth/{min_depth}/{max_depth}")
 async def get_quakes_by_depth(
-    min_depth: float = Path(0), max_depth: float = Path(1000)
-):
+    min_depth: float = Path(0), max_depth: float = Path(1000), limit: int = 10000):
     """
     Esta función devuelve todos los registros de sismos según una profundidad mínima y una máxima expresada en kilómetros. De forma predeterminada estos valores corresponden a los límites típicos (0-1000)
     """
     quake_list = []
     for quake in collection.find(
         {"depth": {"$gte": min_depth, "$lte": max_depth}}
-    ):  # se filtran los documentos según los valores de profundidad
+    ).limit(limit):  # se filtran los documentos según los valores de profundidad y se limita la cantidad de registros
         quake["_id"] = str(
             quake["_id"]
         )  # se modifica el formato del id de mongodb (bson)
