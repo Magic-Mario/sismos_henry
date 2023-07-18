@@ -57,7 +57,7 @@ def actualizar_mongo():
 
     print(tiempo_actual)
     nuevos_valores_time = [
-        tiempo_actual + datetime.timedelta(seconds=i*15)
+        tiempo_actual + datetime.timedelta(seconds=i*10)
         for i in range(len(ids_a_actualizar))] #lista con los valores de tiempo a reemplazar con el formato requerido por BSON
 
     print(nuevos_valores_time)
