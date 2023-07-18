@@ -28,7 +28,6 @@ app = FastAPI(
 
 password = os.environ["MONGODB_PASSWORD"]
 
-
 # datos para acceder a la base de datos
 uri = f"mongodb+srv://picassojp:{password}@cluster0.cchanol.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(uri, server_api=ServerApi("1"))
@@ -48,6 +47,12 @@ class User(BaseModel):
     country: str
 
 
+#funcion para manejar datos faltantes en los registros de MongoDB
+def handle_nan(value, default):
+    if value is None or np.isnan(value):
+        return default
+    return value
+
 @app.get("/date/")
 async def get_quakes_by_date(start_date: str, end_date: str, limit: int = 10000):
     """
@@ -55,10 +60,11 @@ async def get_quakes_by_date(start_date: str, end_date: str, limit: int = 10000)
     """
 
     try:
-        start_date_obj = parser.parse(
-            start_date
-        )  # convierte la fecha al formato necesario para la request
+        start_date_obj = parser.parse(start_date)  # convierte la fecha al formato necesario para la request
+        #print(start_date_obj)
         end_date_obj = parser.parse(end_date)
+        #print(end_date_obj, type(end_date_obj))
+
     except ValueError:  # manejo de error con el formato de la fecha
         raise HTTPException(
             status_code=400,
@@ -72,9 +78,10 @@ async def get_quakes_by_date(start_date: str, end_date: str, limit: int = 10000)
     ).limit(
         limit
     ):  # se filtran los documentos según los valores de fechas y se limita la cantidad de registros
-        quake["_id"] = str(
-            quake["_id"]
-        )  # se modifica el formato del id de mongodb (bson)
+
+        quake["_id"] = str(quake["_id"]) # se modifica el formato del id de mongodb (bson)
+        quake["mag"] = handle_nan(quake.get("mag"), default=-1) #valor por default -1 para nan
+        quake["depth"] = handle_nan(quake.get("depth"), default=-1) #valor por default -1 para nan
         quake_list.append(quake)  # se apendean los documentos en una lista
     return quake_list
 
@@ -89,9 +96,9 @@ async def get_quakes_by_magnitude(
     for quake in collection.find(
         {"mag": {"$gte": min_magnitude, "$lte": max_magnitude}}
     ).limit(limit):  # se filtran los documentos según los valores de magnitud y se limita la cantidad de registros
-        quake["_id"] = str(
-            quake["_id"]
-        )  # se modifica el formato del id de mongodb (bson)
+        quake["_id"] = str(quake["_id"])  # se modifica el formato del id de mongodb (bson)
+        quake["mag"] = handle_nan(quake.get("mag"), default=-1) #valor por default -1 para nan
+        quake["depth"] = handle_nan(quake.get("depth"), default=-1) #valor por default -1 para nan
         quake_list.append(quake)  # se apendean los documentos en una lista
     return quake_list
 
@@ -106,9 +113,9 @@ async def get_quakes_by_depth(
     for quake in collection.find(
         {"depth": {"$gte": min_depth, "$lte": max_depth}}
     ).limit(limit):  # se filtran los documentos según los valores de profundidad y se limita la cantidad de registros
-        quake["_id"] = str(
-            quake["_id"]
-        )  # se modifica el formato del id de mongodb (bson)
+        quake["_id"] = str(quake["_id"])  # se modifica el formato del id de mongodb (bson)
+        quake["mag"] = handle_nan(quake.get("mag"), default=-1) #valor por default -1 para nan
+        quake["depth"] = handle_nan(quake.get("depth"), default=-1) #valor por default -1 para nan
         quake_list.append(quake)  # se apendean los documentos en una lista
     return quake_list
 
@@ -146,7 +153,9 @@ async def get_quakes_by_country(
         )  # se usa la proyección de mongoDB para filtrar las variables de interés, se ordenan de forma decreciente y se limita la salida a 1
         try:
             quake = next(cursor)
-            quake["_id"] = str(quake["_id"])
+            quake["_id"] = str(quake["_id"])  # se modifica el formato del id de mongodb (bson)
+            quake["mag"] = handle_nan(quake.get("mag"), default=-1) #valor por default -1 para nan
+            quake["depth"] = handle_nan(quake.get("depth"), default=-1) #valor por default -1 para nanquake["_id"] = str(quake["_id"])
             return quake
         except (
             StopIteration
@@ -158,7 +167,9 @@ async def get_quakes_by_country(
         if limit is not None:
             query = query.limit(limit)
         for quake in query:
-            quake["_id"] = str(quake["_id"])
+            quake["_id"] = str(quake["_id"])  # se modifica el formato del id de mongodb (bson)
+            quake["mag"] = handle_nan(quake.get("mag"), default=-1) #valor por default -1 para nan
+            quake["depth"] = handle_nan(quake.get("depth"), default=-1) #valor por default -1 para nan
             quake_list.append(quake)
         return quake_list
 
