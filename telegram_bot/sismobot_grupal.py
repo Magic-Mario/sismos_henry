@@ -95,6 +95,7 @@ def informar_terremoto():
         else:
             #mensaje de error por si la consulta no funcionó
             print("Error al realizar la solicitud:", consulta_pais.status_code)
+        print("----------------------------------------------------------------------")
 
 
 schedule.every(2).minutes.do(informar_terremoto)
