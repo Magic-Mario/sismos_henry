@@ -36,11 +36,15 @@ def informar_terremoto():
                 tiempo = dt.datetime.strptime(datos['time'],"%Y-%m-%dT%H:%M:%S.%f")
                 # Sustraigo la fecha de la consulta
                 fecha = tiempo.strftime("%Y-%m-%d")
+                
+                print(f"la fecha de la consulta es {fecha}")
 
                 # Determino la fecha actual
                 tiempo_actual = dt.datetime.now()
                 # sustraigo la fecha actual
                 fecha_actual = tiempo_actual.strftime("%Y-%m-%d")
+                
+                print(f"la fecha actual es {fecha_actual}")
                 
                 # Verifico que los datos sean del mismo día a través de la fechas sacadas anteriormente
                 if fecha == fecha_actual:
@@ -50,11 +54,20 @@ def informar_terremoto():
 
                     # Determino la hora de la consulta
                     hora = tiempo.time()
+                    
+                    print(f"la hora de la consulta es {hora}")
+
+                    
                     # Determino la hora de actual
                     hora_actual = tiempo_actual.time()
+                    
+                    print(f"la hora actual es {hora_actual}")
+
 
                     # Calculo la diferencia entre horas
                     diferencia = (dt.datetime.combine(dt.date.min, hora_actual) - dt.datetime.combine(dt.date.min, hora))
+                    
+                    print(f"la diferencia entre hora actual y hora de la consulta es {diferencia}")
 
                     # Determino el valor de una hora 
                     una_hora = dt.timedelta(hours=1)
@@ -84,7 +97,7 @@ def informar_terremoto():
             print("Error al realizar la solicitud:", consulta_pais.status_code)
 
 
-schedule.every(31).minutes.do(informar_terremoto)
+schedule.every(3).minutes.do(informar_terremoto)
 while True:
     schedule.run_pending()
     time.sleep(30)
