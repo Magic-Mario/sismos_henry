@@ -1,0 +1,78 @@
+blocks:
+- all_upstream_blocks_executed: true
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - "transformaci\xF3n_datos"
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: Carga_datos_API
+  retry_config: null
+  status: updated
+  type: data_loader
+  upstream_blocks: []
+  uuid: carga_datos_api
+- all_upstream_blocks_executed: false
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - only_earthquake
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: "Transformaci\xF3n_datos"
+  retry_config: null
+  status: executed
+  type: transformer
+  upstream_blocks:
+  - carga_datos_api
+  uuid: "transformaci\xF3n_datos"
+- all_upstream_blocks_executed: false
+  color: null
+  configuration: {}
+  downstream_blocks:
+  - exportar_data_mongodb
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: Only_earthquake
+  retry_config: null
+  status: executed
+  type: transformer
+  upstream_blocks:
+  - "transformaci\xF3n_datos"
+  uuid: only_earthquake
+- all_upstream_blocks_executed: false
+  color: null
+  configuration: {}
+  downstream_blocks: []
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: Exportar_Data_MongoDB
+  retry_config: null
+  status: updated
+  type: data_exporter
+  upstream_blocks:
+  - only_earthquake
+  uuid: exportar_data_mongodb
+callbacks: []
+conditionals: []
+data_integration: null
+description: null
+executor_config: {}
+executor_count: 1
+executor_type: null
+extensions: {}
+name: sismos
+notification_config: {}
+spark_config: {}
+type: python
+updated_at: '2023-07-18 20:00:10'
+uuid: sismos
+widgets: []

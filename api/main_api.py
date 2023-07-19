@@ -1,7 +1,8 @@
-from fastapi import FastAPI, Path, Query
+from fastapi import FastAPI, Path, Query, HTTPException
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from datetime import datetime
+from dateutil import parser
 import os
 from pydantic import BaseModel
 import pickle
@@ -27,7 +28,6 @@ app = FastAPI(
 
 password = os.environ["MONGODB_PASSWORD"]
 
-
 # datos para acceder a la base de datos
 uri = f"mongodb+srv://picassojp:{password}@cluster0.cchanol.mongodb.net/?retryWrites=true&w=majority"
 client = MongoClient(uri, server_api=ServerApi("1"))
@@ -47,69 +47,101 @@ class User(BaseModel):
     country: str
 
 
+#funcion para manejar datos faltantes en los registros de MongoDB
+def handle_nan(value, default):
+    if value is None or np.isnan(value):
+        return default
+    return value
+
 @app.get("/date/")
-async def get_quakes_by_date(start_date: str, end_date: str):
+async def get_quakes_by_date(start_date: str, end_date: str, limit: int = 10000):
     """
-    Esta función devuelve una lista con todos los registros de sismos entre dos fechas.
+    Esta función devuelve una lista con los registros de sismos entre dos fechas especificadas (formato mm/dd/aa) con un límite predeterminado de 10000 registros.
     """
 
-    start_date_obj = datetime.strptime(start_date, "%Y-%m-%d")
-    end_date_obj = datetime.strptime(end_date, "%Y-%m-%d")
+    try:
+        start_date_obj = parser.parse(start_date)  # convierte la fecha al formato necesario para la request
+        #print(start_date_obj)
+        end_date_obj = parser.parse(end_date)
+        #print(end_date_obj, type(end_date_obj))
+
+    except ValueError:  # manejo de error con el formato de la fecha
+        raise HTTPException(
+            status_code=400,
+            detail="Fecha proporcionada en formato no válido. Por favor, proporciona una fecha válida.",
+        )
 
     quake_list = []
 
     for quake in collection.find(
         {"time": {"$gte": start_date_obj, "$lte": end_date_obj}}
-    ):  # se filtran los documentos según los valores de fechas
-        quake["_id"] = str(
-            quake["_id"]
-        )  # se modifica el formato del id de mongodb (bson)
+    ).limit(
+        limit
+    ):  # se filtran los documentos según los valores de fechas y se limita la cantidad de registros
+
+        quake["_id"] = str(quake["_id"]) # se modifica el formato del id de mongodb (bson)
+        quake["mag"] = handle_nan(quake.get("mag"), default=-1) #valor por default -1 para nan
+        quake["depth"] = handle_nan(quake.get("depth"), default=-1) #valor por default -1 para nan
         quake_list.append(quake)  # se apendean los documentos en una lista
     return quake_list
 
 
 @app.get("/magnitude/{min_magnitude}/{max_magnitude}")
 async def get_quakes_by_magnitude(
-    min_magnitude: float = Path(0.0), max_magnitude: float = Path(10.0)
-):
+    min_magnitude: float = Path(0.0), max_magnitude: float = Path(10.0), limit: int = 10000):
     """
-    Esta función devuelve todos los registros de sismos según una magnitud mínima y una máxima. De forma predeterminada estos valores corresponden a los límites de la escala (0-10)
+    Esta función devuelve todos los registros de sismos según una magnitud mínima (límite inferior 0.0) y una máxima (límite superior 10.0). De forma predeterminada estos valores corresponden a los límites de la escala (0-10)
     """
     quake_list = []
     for quake in collection.find(
         {"mag": {"$gte": min_magnitude, "$lte": max_magnitude}}
-    ):  # se filtran los documentos según los valores de magnitud
-        quake["_id"] = str(
-            quake["_id"]
-        )  # se modifica el formato del id de mongodb (bson)
+    ).limit(limit):  # se filtran los documentos según los valores de magnitud y se limita la cantidad de registros
+        quake["_id"] = str(quake["_id"])  # se modifica el formato del id de mongodb (bson)
+        quake["mag"] = handle_nan(quake.get("mag"), default=-1) #valor por default -1 para nan
+        quake["depth"] = handle_nan(quake.get("depth"), default=-1) #valor por default -1 para nan
         quake_list.append(quake)  # se apendean los documentos en una lista
     return quake_list
 
 
 @app.get("/depth/{min_depth}/{max_depth}")
 async def get_quakes_by_depth(
-    min_depth: float = Path(0), max_depth: float = Path(1000)
-):
+    min_depth: float = Path(0), max_depth: float = Path(1000), limit: int = 10000):
     """
     Esta función devuelve todos los registros de sismos según una profundidad mínima y una máxima expresada en kilómetros. De forma predeterminada estos valores corresponden a los límites típicos (0-1000)
     """
     quake_list = []
     for quake in collection.find(
         {"depth": {"$gte": min_depth, "$lte": max_depth}}
-    ):  # se filtran los documentos según los valores de profundidad
-        quake["_id"] = str(
-            quake["_id"]
-        )  # se modifica el formato del id de mongodb (bson)
+    ).limit(limit):  # se filtran los documentos según los valores de profundidad y se limita la cantidad de registros
+        quake["_id"] = str(quake["_id"])  # se modifica el formato del id de mongodb (bson)
+        quake["mag"] = handle_nan(quake.get("mag"), default=-1) #valor por default -1 para nan
+        quake["depth"] = handle_nan(quake.get("depth"), default=-1) #valor por default -1 para nan
         quake_list.append(quake)  # se apendean los documentos en una lista
     return quake_list
 
 
+country_traduccion = {
+    "estados unidos": "usa",
+    "japon": "japan",
+    "japón": "japan",
+}  # un diccionario para traducir los nombres de los países
+
+
 @app.get("/country/{country}")
-async def get_quakes_by_country(country: str, latest: bool = False):
+async def get_quakes_by_country(
+    country: str, latest: bool = False, limit: Optional[int] = None
+):
     """
-    Esta función devuelve todos los registros de sismos según alguno de los tres países posibles: usa, japan y chile.
+    Esta función devuelve todos los registros de sismos según alguno de los tres países posibles: "usa", "japan" y "chile".
     Si latest es True, devuelve solo el registro más reciente.
     """
+    country = country.lower()  # convierte el nombre del país a minúsculas
+
+    if country in country_traduccion:
+        country = country_traduccion[
+            country
+        ]  # traduce el nombre del país si es necesario
+
     if latest:
         cursor = (
             collection.find(
@@ -121,7 +153,9 @@ async def get_quakes_by_country(country: str, latest: bool = False):
         )  # se usa la proyección de mongoDB para filtrar las variables de interés, se ordenan de forma decreciente y se limita la salida a 1
         try:
             quake = next(cursor)
-            quake["_id"] = str(quake["_id"])
+            quake["_id"] = str(quake["_id"])  # se modifica el formato del id de mongodb (bson)
+            quake["mag"] = handle_nan(quake.get("mag"), default=-1) #valor por default -1 para nan
+            quake["depth"] = handle_nan(quake.get("depth"), default=-1) #valor por default -1 para nanquake["_id"] = str(quake["_id"])
             return quake
         except (
             StopIteration
@@ -129,8 +163,13 @@ async def get_quakes_by_country(country: str, latest: bool = False):
             return {}
     else:
         quake_list = []
-        for quake in collection.find({"country": country}):
-            quake["_id"] = str(quake["_id"])
+        query = collection.find({"country": country}).sort("time", -1)
+        if limit is not None:
+            query = query.limit(limit)
+        for quake in query:
+            quake["_id"] = str(quake["_id"])  # se modifica el formato del id de mongodb (bson)
+            quake["mag"] = handle_nan(quake.get("mag"), default=-1) #valor por default -1 para nan
+            quake["depth"] = handle_nan(quake.get("depth"), default=-1) #valor por default -1 para nan
             quake_list.append(quake)
         return quake_list
 
@@ -158,6 +197,7 @@ def classify_magnitude(magnitude):
     else:
         return "Magnitud no clasificada"
 
+
 @app.get("/classf")
 async def predict_quake(depth: float, magnitude: float):
     """
@@ -177,7 +217,7 @@ async def predict_quake(depth: float, magnitude: float):
 
     # Hacer la predicción
     prediction = model.predict(input_data)
-    dict_depth = {0: "profundo", 1: "superficial", 2: "semi-profundo", 3: "intermedio"}
+    dict_depth = {0: "superficial", 1: "intermedio", 2: "semi-profundo", 3: "profundo"}
 
     # Función para mapear los valores del array a las etiquetas correspondientes
     map_func = np.vectorize(lambda x: dict_depth[x])
